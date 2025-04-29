@@ -301,6 +301,7 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
         }}
       </AutoSizer>
     </div>
+    
   );
 };
 

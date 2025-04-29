@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import WallpaperGrid from "../components/WallpaperGrid";
-
 // Global variable to cache wallpapers on the client.
 // This cache survives client-side navigations but will be reset on a full page reload.
 let animalsWallpapersCache = null;
@@ -55,7 +54,7 @@ const AnimalsPage = () => {
   }, []);
 
   return (
-    <div className=" mx-auto px-4 py-8">
+    <div className=" mx-auto px-4 py-8 h-[100%]">
       <h1
         className="text-center text-4xl sm:text-5xl font-bold tracking-tight text-[#e60076] mb-10 transition-colors mt-20"
       >
@@ -63,6 +62,7 @@ const AnimalsPage = () => {
       </h1>
 
       <WallpaperGrid wallpapers={wallpapers} />
+      
     </div>
   );
 };
