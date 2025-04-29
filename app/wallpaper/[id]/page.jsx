@@ -120,7 +120,7 @@
         <button
           type="button"
           onClick={() => router.back()}
-          className="fixed top-20 cursor-pointer left-6 z-50 flex items-center gap-2 bg-white border border-gray-300 hover:border-gray-400 shadow-md px-4 py-2 rounded-full text-gray-700 hover:text-gray-900 transition duration-200"
+          className="fixed top-15 cursor-pointer left-0 z-50 flex items-center gap-2 bg-white border border-gray-300 hover:border-gray-400 shadow-md px-4 py-2 rounded-full text-gray-700 hover:text-gray-900 transition duration-200"
           aria-label="Go back"
         >
           <svg
@@ -141,7 +141,7 @@
 
 
         {/* Video Preview Section */}
-        <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-gray-50">
+        <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-gray-50 ">
           <video
             ref={videoRef}
             src={blobVideoUrl}
@@ -153,7 +153,7 @@
             onClick={togglePlay}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            className="w-full max-h-[520px] object-contain bg-black"
+            className="w-full max-h-[520px] object-contain bg-black "
             aria-label="Wallpaper preview"
           />
         </div>

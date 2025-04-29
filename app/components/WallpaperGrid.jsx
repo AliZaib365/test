@@ -14,6 +14,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
+// Define constants that are used throughout the component.
 const DEFAULT_CELL_WIDTH = 350;
 const DEFAULT_CELL_HEIGHT = 600;
 const GUTTER_SIZE = 10;
@@ -70,7 +71,9 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
     setTimeout(() => document.body.removeChild(a), 100);
   }, []);
 
-  // Cell component: always display thumbnail, and play video on hover.
+  // Cell component: shows a thumbnail. On hover, if the video blob hasn't been fetched,
+  // it triggers the blob fetch. Until the blob is fully ready and the video buffered,
+  // the thumbnail remains displayed.
   const Cell = memo(({ columnIndex, rowIndex, style, data }) => {
     const { wallpapers, columnCount } = data;
     const index = rowIndex * columnCount + columnIndex;
@@ -86,12 +89,13 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
       [item.name, extractTags]
     );
 
-    // States for video blob, loaded status, and hover.
+    // States for video blob, loaded (buffered) status, and hover.
     const [blobUrl, setBlobUrl] = useState(null);
     const [isBlobReady, setBlobReady] = useState(false);
     const [videoLoaded, setVideoLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const [hasRequestedBlob, setHasRequestedBlob] = useState(false);
 
     // Thumbnail URL (loads immediately)
     const thumbUrl =
@@ -121,12 +125,7 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
         });
     }, [item.media, index]);
 
-    // Immediately load the video blob on mount for faster availability.
-    useEffect(() => {
-      loadBlob();
-    }, [loadBlob]);
-
-    // Cleanup effect to revoke the blob URL.
+    // Cleanup effect to revoke blob URL on unmount.
     useEffect(() => {
       return () => {
         if (blobUrl) {
@@ -135,10 +134,14 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
       };
     }, [blobUrl]);
 
-    // When hovered, start playing video.
+    // When hovered, trigger blob loading if not already requested.
     const handleMouseEnter = useCallback(() => {
       setIsHovered(true);
-    }, []);
+      if (!hasRequestedBlob && !isBlobReady) {
+        setHasRequestedBlob(true);
+        loadBlob();
+      }
+    }, [hasRequestedBlob, isBlobReady, loadBlob]);
 
     const handleMouseLeave = useCallback(() => {
       setIsHovered(false);
@@ -149,17 +152,22 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
       }
     }, [index]);
 
-    // Effect to trigger video playback when hovered and blob is ready.
+    // Trigger video playback when hovered, blob is ready, and video is buffered.
     useEffect(() => {
-      if (isHovered && isBlobReady) {
+      if (isHovered && isBlobReady && videoLoaded) {
         const video = videoRefs.current[index];
         if (video) {
-          video.play().catch((e) => console.debug('Autoplay prevented:', e));
+          video.play().catch((e) =>
+            console.debug('Autoplay prevented:', e)
+          );
         }
       }
-    }, [isHovered, isBlobReady, index]);
+    }, [isHovered, isBlobReady, videoLoaded, index]);
 
+    // Video opacity: show video only when hover is active and video is buffered.
     const videoOpacity = isHovered && videoLoaded ? 1 : 0;
+    // Always show thumbnail until video is both ready and buffered.
+    const thumbOpacity = videoLoaded && isBlobReady && isHovered ? 0 : 1;
 
     return (
       <div
@@ -181,7 +189,7 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
             src={thumbUrl}
             alt={displayName}
             className="absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-500"
-            style={{ opacity: 1, zIndex: 0 }}
+            style={{ opacity: thumbOpacity, zIndex: 0 }}
             onContextMenu={(e) => e.preventDefault()}
           />
         )}
@@ -195,7 +203,8 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
             preload="metadata"
             className="absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-500"
             style={{ opacity: videoOpacity, zIndex: 1 }}
-            onLoadedData={() => setVideoLoaded(true)}
+            // onCanPlayThrough ensures the video is fully buffered before setting videoLoaded.
+            onCanPlayThrough={() => setVideoLoaded(true)}
             onError={() => {
               console.error(`Failed to load video at index ${index}`);
               setHasError(true);
