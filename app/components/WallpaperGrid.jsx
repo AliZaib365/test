@@ -18,9 +18,6 @@ const DEFAULT_CELL_WIDTH = 350;
 const DEFAULT_CELL_HEIGHT = 600;
 const GUTTER_SIZE = 10;
 
-// In-memory cache for video blob URLs.
-const blobCache = {};
-
 // Helper function to build the proxy URL.
 const buildProxyUrl = (originalUrl) => {
   return `/api/proxy?url=${encodeURIComponent(originalUrl)}`;
@@ -70,7 +67,6 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    // Optionally, revoke the blob URL after a short delay if you want to further limit its lifetime.
     setTimeout(() => document.body.removeChild(a), 100);
   }, []);
 
@@ -105,30 +101,24 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
 
     const cellRef = useRef(null);
 
-    // Function to load video as blob.
+    // Function to load video as a blob.
     const loadBlob = useCallback(() => {
-      if (blobCache[item.media]) {
-        setBlobUrl(blobCache[item.media]);
-        setBlobReady(true);
-      } else {
-        const proxyUrl = buildProxyUrl(item.media);
-        fetch(proxyUrl)
-          .then((res) => {
-            if (!res.ok)
-              throw new Error('Network response was not ok');
-            return res.blob();
-          })
-          .then((blob) => {
-            const url = URL.createObjectURL(blob);
-            blobCache[item.media] = url;
-            setBlobUrl(url);
-            setBlobReady(true);
-          })
-          .catch((err) => {
-            console.error(`Failed to load video blob at index ${index}:`, err);
-            setHasError(true);
-          });
-      }
+      const proxyUrl = buildProxyUrl(item.media);
+      fetch(proxyUrl)
+        .then((res) => {
+          if (!res.ok)
+            throw new Error('Network response was not ok');
+          return res.blob();
+        })
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          setBlobUrl(url);
+          setBlobReady(true);
+        })
+        .catch((err) => {
+          console.error(`Failed to load video blob at index ${index}:`, err);
+          setHasError(true);
+        });
     }, [item.media, index]);
 
     // Immediately load the video blob on mount for faster availability.
@@ -136,15 +126,14 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
       loadBlob();
     }, [loadBlob]);
 
-    // Cleanup effect to revoke the blob URL when the component unmounts or the blobUrl changes.
+    // Cleanup effect to revoke the blob URL.
     useEffect(() => {
       return () => {
         if (blobUrl) {
           URL.revokeObjectURL(blobUrl);
-          delete blobCache[item.media];
         }
       };
-    }, [blobUrl, item.media]);
+    }, [blobUrl]);
 
     // When hovered, start playing video.
     const handleMouseEnter = useCallback(() => {
@@ -170,8 +159,6 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
       }
     }, [isHovered, isBlobReady, index]);
 
-    // For a smooth overlay, we always keep the thumbnail visible.
-    // The video element's opacity transitions based on hover and its load status.
     const videoOpacity = isHovered && videoLoaded ? 1 : 0;
 
     return (
@@ -198,9 +185,6 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
             onContextMenu={(e) => e.preventDefault()}
           />
         )}
-
-        {/* Video element always rendered if ready; it overlays the thumbnail on hover.
-            The onContextMenu prevents its blob URL from being copied/opened in another tab. */}
         {isBlobReady && (
           <video
             ref={(el) => (videoRefs.current[index] = el)}
@@ -219,8 +203,6 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
             onContextMenu={(e) => e.preventDefault()}
           />
         )}
-
-        {/* Render a skeleton if no thumbnail is available */}
         {!thumbUrl && (
           <Skeleton
             height="100%"
@@ -234,7 +216,6 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
             }}
           />
         )}
-
         <button
           onClick={(e) => handleDownload(e, item, displayName)}
           className="absolute top-2 right-2 bg-black/60 hover:bg-black text-white p-1.5 rounded-full z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -256,7 +237,6 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
             />
           </svg>
         </button>
-
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 pointer-events-none">
           <div className="w-full">
             <h3 className="text-white font-medium text-xs sm:text-sm md:text-base truncate">
