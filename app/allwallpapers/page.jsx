@@ -41,7 +41,7 @@ const AllWallpapersPage = () => {
   }
   const category = "All "
   return (
-    <div className="container mx-auto p-4">
+    <div className=" mx-auto p-4">
       <h1
         className="text-center text-4xl sm:text-5xl font-bold tracking-tight text-[#e60076] mb-10 transition-colors mt-20"
       >

@@ -16,7 +16,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 
 const DEFAULT_CELL_WIDTH = 350;
 const DEFAULT_CELL_HEIGHT = 600;
-const GUTTER_SIZE = 8;
+const GUTTER_SIZE = 10;
 
 // In-memory cache for video blob URLs.
 const blobCache = {};

@@ -5,7 +5,7 @@ import WallpaperGrid from "../components/WallpaperGrid";
 
 // Global variable to cache wallpapers on the client.
 // This cache survives client-side navigations but will be reset on a full page reload.
-let animalsWallpapersCache = null;
+let AnimeWallpapersCache = null;
 
 // Utility function to shuffle an array using the Fisher-Yates algorithm.
 const shuffleArray = (array) => {
@@ -17,15 +17,15 @@ const shuffleArray = (array) => {
   return arr;
 };
 
-const AnimalsPage = () => {
+const AnimePage = () => {
   const [wallpapers, setWallpapers] = useState([]);
   const category = "Anime";
 
   useEffect(() => {
     // If wallpapers are already cached due to client-side navigation,
     // use the cached result instead of refetching and reshuffling.
-    if (animalsWallpapersCache) {
-      setWallpapers(animalsWallpapersCache);
+    if (AnimeWallpapersCache) {
+      setWallpapers(AnimeWallpapersCache);
       return;
     }
 
@@ -44,7 +44,7 @@ const AnimalsPage = () => {
         // Shuffle wallpapers array to randomize the display order.
         const randomizedWallpapers = shuffleArray(fetchedWallpapers);
         // Cache the result so it persists on client-side navigations.
-        animalsWallpapersCache = randomizedWallpapers;
+        AnimeWallpapersCache = randomizedWallpapers;
         setWallpapers(randomizedWallpapers);
       } catch (err) {
         console.error("Error fetching wallpapers:", err);
@@ -55,7 +55,7 @@ const AnimalsPage = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className=" mx-auto px-4 py-8">
       <h1
         className="text-center text-4xl sm:text-5xl font-bold tracking-tight text-[#e60076] mb-10 transition-colors mt-20"
       >
@@ -67,4 +67,4 @@ const AnimalsPage = () => {
   );
 };
 
-export default AnimalsPage;
+export default AnimePage;
