@@ -17,13 +17,10 @@ function WallpaperDetailPage() {
   // Fetch wallpaper data from the URL search parameters.
   useEffect(() => {
     const key = searchParams.get("data");
-    console.log("Decoded key from URL:", key);
     if (key) {
       // Retrieve the corresponding compressed data from localStorage.
       const storageKey = `wallpaper_${key}`;
       const compressedData = localStorage.getItem(storageKey);
-      console.log("Retrieved compressed data from localStorage:", compressedData);
-      
       if (compressedData) {
         try {
           // Decompress and decode the data.
