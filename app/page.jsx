@@ -37,10 +37,11 @@ const HomePage = () => {
     <div className="container mx-auto p-4 mt-20">
       <h1 className="text-3xl font-semibold mb-8 text-center text-[#e60076]">Wallpaper Categories</h1>
       <div className="flex flex-wrap">
+      <CustomCard />
         {categories.map((category) => (
           <CategoryCard key={category.name} category={category} />
         ))}
-        <CustomCard /> {/* Add the custom card */}
+        {/* Add the custom card */}
       </div>
     </div>
   );
