@@ -13,7 +13,8 @@ import { FixedSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-
+import LZString from 'lz-string';
+import CryptoJS from "crypto-js";
 // Define constants that are used throughout the component.
 const DEFAULT_CELL_WIDTH = 350;
 const DEFAULT_CELL_HEIGHT = 600;
@@ -48,10 +49,15 @@ const WallpaperGrid = ({ wallpapers = [] }) => {
 
   const handleWallpaperClick = useCallback(
     (index) => {
-      const encodedWallpaper = encodeURIComponent(
-        JSON.stringify(wallpapers[index])
-      );
-      router.push(`/wallpaper/${index}?data=${encodedWallpaper}`);
+      const jsonData = JSON.stringify(wallpapers[index]);
+      // Compress and encode the JSON data into a URL-safe string.
+      const compressedData = LZString.compressToEncodedURIComponent(jsonData);
+      // Generate a 32-character MD5 hash from the compressed data.
+      const key = CryptoJS.MD5(compressedData).toString(CryptoJS.enc.Hex);
+      // Save the compressed data in localStorage using the hash as the key.
+      localStorage.setItem(`wallpaper_${key}`, compressedData);
+      // Navigate using only the 32-character key.
+      router.push(`/wallpaper/${index}?data=${key}`);
     },
     [wallpapers, router]
   );

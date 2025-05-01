@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-
+import LZString from "lz-string";
+import CryptoJS from 'crypto-js';
 function WallpaperDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -15,16 +16,31 @@ function WallpaperDetailPage() {
 
   // Fetch wallpaper data from the URL search parameters.
   useEffect(() => {
-    const encodedData = searchParams.get('data');
-    if (encodedData) {
-      try {
-        const decodedData = JSON.parse(decodeURIComponent(encodedData));
-        setWallpaper(decodedData);
-      } catch (error) {
-        router.push('/');
+    const key = searchParams.get("data");
+    console.log("Decoded key from URL:", key);
+    if (key) {
+      // Retrieve the corresponding compressed data from localStorage.
+      const storageKey = `wallpaper_${key}`;
+      const compressedData = localStorage.getItem(storageKey);
+      console.log("Retrieved compressed data from localStorage:", compressedData);
+      
+      if (compressedData) {
+        try {
+          // Decompress and decode the data.
+          const decompressedData = LZString.decompressFromEncodedURIComponent(compressedData);
+          if (!decompressedData) {
+            throw new Error("Decompression failed");
+          }
+          const decodedData = JSON.parse(decompressedData);
+          setWallpaper(decodedData);
+        } catch (error) {
+          router.push("/");
+        }
+      } else {
+        router.push("/");
       }
     } else {
-      router.push('/');
+      router.push("/");
     }
   }, [searchParams, router]);
 
@@ -77,7 +93,7 @@ function WallpaperDetailPage() {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().catch(() => { });
       }
       setIsPlaying(!isPlaying);
     }
